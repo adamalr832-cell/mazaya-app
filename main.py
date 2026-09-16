@@ -12,6 +12,7 @@ db = SQLAlchemy(app)
 class CompanyRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     school_name = db.Column(db.String(150), nullable=False)
+    school_location = db.Column(db.String(150), nullable=False)
     plastic_percentage = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(50), nullable=False)
     notes = db.Column(db.Text, nullable=True)
@@ -19,7 +20,6 @@ class CompanyRequest(db.Model):
 with app.app_context():
     db.create_all()
 
-# قالب CSS المشترك لتصميم عصري وفخم
 COMMON_STYLE = '''
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
@@ -81,12 +81,16 @@ def index():
                     <div class="card card-custom p-4 p-md-5">
                         <div class="text-center mb-4">
                             <h2 class="fw-bold text-success">♻️ شركة مزايا للتدوير</h2>
-                            <p class="text-muted small">نظام استقبال بيانات وإحصاءات إعادة تدوير البلاستيك للمدارس</p>
+                            <p class="text-muted small">نظام استقبال بيانات وإحصاءات إعادة تدوير الورق للمدارس</p>
                         </div>
                         <form action="/submit" method="POST">
                             <div class="mb-3">
                                 <label class="form-label fw-600">اسم المدرسة</label>
                                 <input type="text" class="form-control" name="school_name" placeholder="أدخل اسم المدرسة هنا" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-600">موقع المدرسة (الولاية / المنطقة)</label>
+                                <input type="text" class="form-control" name="school_location" placeholder="مثال: السيب، مسقط" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-600">نسبة استلام العبوية (%100-0)</label>
@@ -113,12 +117,14 @@ def index():
 @app.route('/submit', methods=['POST'])
 def submit():
     school_name = request.form.get('school_name')
+    school_location = request.form.get('school_location')
     plastic_percentage = request.form.get('plastic_percentage')
     phone = request.form.get('phone')
     notes = request.form.get('notes', '')
 
     new_request = CompanyRequest(
         school_name=school_name,
+        school_location=school_location,
         plastic_percentage=plastic_percentage,
         phone=phone,
         notes=notes
@@ -139,7 +145,7 @@ def submit():
             <div class="card card-custom p-5 mx-auto" style="max-width: 500px;">
                 <div class="mb-3 text-success" style="font-size: 50px;">✅</div>
                 <h3 class="fw-bold text-dark mb-3">تم إرسال طلب شركة مزايا بنجاح</h3>
-                <p class="text-muted mb-4">شكراً لك، تم تسجل بيانات المدرسة بنجاح في النظام.</p>
+                <p class="text-muted mb-4">شكراً لك، تم تسجيل بيانات المدرسة بنجاح في النظام.</p>
                 <a href="/" class="btn btn-primary-custom">إرسال طلب جديد</a>
             </div>
         </div>
@@ -208,10 +214,10 @@ def admin_dashboard():
     
     rows_html = ""
     for r in requests_list:
-        rows_html += f"<tr><td>{r.id}</td><td class='fw-bold'>{r.school_name}</td><td><span class='badge bg-success'>{r.plastic_percentage}</span></td><td>{r.phone}</td><td>{r.notes or '-'}</td></tr>"
+        rows_html += f"<tr><td>{r.id}</td><td class='fw-bold'>{r.school_name}</td><td>{r.school_location}</td><td><span class='badge bg-success'>{r.plastic_percentage}</span></td><td>{r.phone}</td><td>{r.notes or '-'}</td></tr>"
 
     if not rows_html:
-        rows_html = "<tr><td colspan='5' class='text-center text-muted py-4'>لا توجد طلبات مسجلة حتى الآن</td></tr>"
+        rows_html = "<tr><td colspan='6' class='text-center text-muted py-4'>لا توجد طلبات مسجلة حتى الآن</td></tr>"
 
     return render_template_string(f'''
     <!DOCTYPE html>
@@ -230,14 +236,15 @@ def admin_dashboard():
         </nav>
         <div class="container my-5">
             <div class="card card-custom p-4">
-                <h4 class="mb-4 fw-bold text-secondary">طلبات المدارس الواردة</h4>
+                <h4 class="mb-4 fw-bold text-secondary">طلبات المدارس الواردة (إعادة تدوير الورق)</h4>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light">
                             <tr>
                                 <th>#</th>
                                 <th>اسم المدرسة</th>
-                                <th>نسبة البلاستيك</th>
+                                <th>الموقع</th>
+                                <th>نسبة الورق</th>
                                 <th>رقم الهاتف</th>
                                 <th>ملاحظات</th>
                             </tr>
