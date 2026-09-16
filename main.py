@@ -35,75 +35,115 @@ with app.app_context():
 
 COMMON_STYLE = '''
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
     body {
         font-family: 'Cairo', sans-serif;
-        background: linear-gradient(rgba(15, 32, 39, 0.75), rgba(44, 83, 100, 0.75)), 
-                    url('https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+        background: linear-gradient(135deg, rgba(15, 32, 39, 0.85), rgba(44, 83, 100, 0.85)), 
+                    url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
         background-size: cover;
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 40px 0;
+        padding: 40px 15px;
     }
     .card-custom {
         border: none;
-        border-radius: 20px;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-        background: rgba(255, 255, 255, 0.96);
-        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(15px);
         overflow: hidden;
+    }
+    .hero-container {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     }
     .hero-img {
         width: 100%;
-        height: 160px;
+        height: 170px;
         object-fit: cover;
-        border-radius: 12px;
-        margin-bottom: 20px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.5s ease;
+    }
+    .hero-container:hover .hero-img {
+        transform: scale(1.03);
+    }
+    .hero-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+        padding: 15px 20px;
+        color: white;
+    }
+    .form-label {
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    .input-group-text {
+        background-color: #f1f8f5;
+        border: 1px solid #ced4da;
+        border-radius: 0 12px 12px 0 !important;
+        color: #2e7d32;
+        font-size: 16px;
+    }
+    .form-control, .form-select {
+        border-radius: 12px 0 0 12px;
+        padding: 12px 15px;
+        border: 1px solid #ced4da;
+        background-color: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    .form-control:focus {
+        border-color: #2e7d32;
+        box-shadow: 0 0 0 0.25rem rgba(46, 125, 50, 0.2);
+        background-color: #fff;
+    }
+    /* تعديل الحقول التي ليس فيها input-group */
+    .single-input {
+        border-radius: 12px !important;
     }
     .btn-primary-custom {
         background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
         border: none;
-        border-radius: 10px;
-        padding: 12px;
+        border-radius: 12px;
+        padding: 14px;
         font-weight: 700;
+        font-size: 16px;
         color: #fff;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(46, 125, 50, 0.4);
+        box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
     }
     .btn-primary-custom:hover {
         background: linear-gradient(135deg, #1b5e20 0%, #0d3811 100%);
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(46, 125, 50, 0.6);
+        box-shadow: 0 8px 25px rgba(46, 125, 50, 0.6);
         color: #fff;
-    }
-    .form-control, .form-select {
-        border-radius: 10px;
-        padding: 12px 15px;
-        border: 1px solid #ced4da;
-        background-color: rgba(255, 255, 255, 0.9);
-    }
-    .form-control:focus {
-        border-color: #2e7d32;
-        box-shadow: 0 0 0 0.25rem rgba(46, 125, 50, 0.25);
-        background-color: #fff;
     }
     .badge-pending {
         background-color: #fff3cd;
         color: #856404;
-        font-weight: 600;
-        padding: 6px 12px;
+        font-weight: 700;
+        padding: 6px 14px;
         border-radius: 20px;
+        font-size: 13px;
     }
     .badge-collected {
         background-color: #d4edda;
         color: #155724;
-        font-weight: 600;
-        padding: 6px 12px;
+        font-weight: 700;
+        padding: 6px 14px;
         border-radius: 20px;
+        font-size: 13px;
     }
 </style>
 '''
@@ -116,49 +156,75 @@ def index():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>شركة مزايا للتدوير</title>
+        <title>شركة مزايا للتدوير | منصة المدارس</title>
         {COMMON_STYLE}
     </head>
     <body>
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-md-7 col-lg-6">
+                <div class="col-md-8 col-lg-7">
                     <div class="card card-custom p-4 p-md-5">
-                        <!-- صورة إعادة تدوير خلفية وتوضيحية فخمة -->
-                        <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=800&auto=format&fit=crop" class="hero-img" alt="إعادة التدوير والبيئة">
+                        
+                        <!-- قسم الصورة التعبيرية الحديثة -->
+                        <div class="hero-container">
+                            <img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=900&auto=format&fit=crop" class="hero-img" alt="إعادة التدوير والبيئة">
+                            <div class="hero-overlay">
+                                <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-recycle text-success me-2"></i> شركة مزايا للتدوير المستدام</h5>
+                                <p class="small mb-0 text-light opacity-75">نحو بيئة مدرسية خضراء ونظيفة</p>
+                            </div>
+                        </div>
                         
                         <div class="text-center mb-4">
-                            <h2 class="fw-bold text-success">شركة مزايا للتدوير</h2>
-                            <p class="text-muted small">منصة استقبال بيانات وإحصاءات إعادة تدوير الورق للمدارس</p>
+                            <h3 class="fw-bold text-success mb-1">تسجيل بيانات الحاويات وإعادة التدوير</h3>
+                            <p class="text-muted small">يرجى تعبئة النموذج أدناه بدقة ليتم إرسال الطلب لفريق العمل الميداني</p>
                         </div>
+
                         <form action="/submit" method="POST">
                             <div class="mb-3">
-                                <label class="form-label fw-bold">اسم المدرسة</label>
-                                <input type="text" class="form-control" name="school_name" placeholder="أدخل اسم المدرسة هنا" required>
+                                <label class="form-label"><i class="fa-solid fa-school text-success me-1"></i> اسم المدرسة</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-building-columns"></i></span>
+                                    <input type="text" class="form-control" name="school_name" placeholder="أدخل اسم المدرسة هنا..." required>
+                                </div>
                             </div>
                             
                             <div class="mb-3">
-                                <label class="form-label fw-bold">موقع المدرسة (تحديد تلقائي)</label>
+                                <label class="form-label"><i class="fa-solid fa-map-location-dot text-success me-1"></i> موقع المدرسة (تحديد تلقائي)</label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" id="school_location" name="school_location" placeholder="اضغط على زر التحديد..." required readonly>
-                                    <button type="button" class="btn btn-outline-success px-3 fw-bold" onclick="getLocation()">📍 حدد موقعي</button>
+                                    <span class="input-group-text"><i class="fa-solid fa-location-crosshairs"></i></span>
+                                    <input type="text" class="form-control" id="school_location" name="school_location" placeholder="اضغط على زر التحديد في الجانب..." required readonly>
+                                    <button type="button" class="btn btn-outline-success fw-bold px-3" style="border-radius: 0 12px 12px 0;" onclick="getLocation()">
+                                        <i class="fa-solid fa-location-dot me-1"></i> حدد موقعي
+                                    </button>
                                 </div>
                                 <div id="location-status" class="form-text text-success mt-1 fw-bold" style="font-size: 13px;"></div>
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">نسبة استلام العبوية أو تدوير الورق (0 - 100%)</label>
-                                <input type="text" class="form-control" name="plastic_percentage" placeholder="مثال: 95%" required>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fa-solid fa-percent text-success me-1"></i> نسبة امتلاء الحاوية / التدوير</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fa-solid fa-chart-pie"></i></span>
+                                        <input type="text" class="form-control" name="plastic_percentage" placeholder="مثال: 95%" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fa-solid fa-phone text-success me-1"></i> رقم هاتف المسؤول</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fa-solid fa-mobile-screen-button"></i></span>
+                                        <input type="text" class="form-control" name="phone" placeholder="أدخل رقم الهاتف..." required>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">رقم هاتف المسؤول</label>
-                                <input type="text" class="form-control" name="phone" placeholder="أدخل رقم الهاتف" required>
-                            </div>
+
                             <div class="mb-4">
-                                <label class="form-label fw-bold">ملاحظات إضافية (اختياري)</label>
-                                <textarea class="form-control" name="notes" rows="3" placeholder="أي تفاصيل حول الحاويات أو الملاحظات..."></textarea>
+                                <label class="form-label"><i class="fa-solid fa-note-sticky text-success me-1"></i> ملاحظات إضافية (اختياري)</label>
+                                <textarea class="form-control single-input" name="notes" rows="3" placeholder="أي تفاصيل حول نوع الحاويات أو أوقات الاستلام المناسبة..."></textarea>
                             </div>
-                            <button type="submit" class="btn btn-primary-custom w-100">إرسال الطلب للإدارة 🚀</button>
+
+                            <button type="submit" class="btn btn-primary-custom w-100">
+                                <i class="fa-solid fa-paper-plane me-2"></i> إرسال الطلب للإدارة فوراً
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -176,7 +242,7 @@ def index():
                     return;
                 }}
 
-                status.textContent = 'جاري تحديد الموقع بدقة...';
+                status.textContent = 'جاري تحديد إحداثيات موقع المدرسة بدقة...';
                 status.className = 'form-text text-warning mt-1';
 
                 navigator.geolocation.getCurrentPosition((position) => {{
@@ -220,16 +286,18 @@ def submit():
     <html lang="ar" dir="rtl">
     <head>
         <meta charset="UTF-8">
-        <title>تم الإرسال بنجاح</title>
+        <title>تم إرسال الطلب بنجاح</title>
         {COMMON_STYLE}
     </head>
     <body>
         <div class="container text-center">
-            <div class="card card-custom p-5 mx-auto" style="max-width: 500px;">
-                <div class="mb-3 text-success" style="font-size: 60px;">🎉</div>
-                <h3 class="fw-bold text-dark mb-3">تم إرسال طلبك بنجاح!</h3>
-                <p class="text-muted mb-4">شكراً لك، تم حفظ بيانات المدرسة والحاويات وموقعها وإرسالها مباشرة للإدارة.</p>
-                <a href="/" class="btn btn-primary-custom w-100">إرسال طلب جديد ♻️</a>
+            <div class="card card-custom p-5 mx-auto" style="max-width: 520px;">
+                <div class="mb-3 text-success" style="font-size: 70px;"><i class="fa-solid fa-circle-check"></i></div>
+                <h3 class="fw-bold text-dark mb-3">تم إرسال بياناتك بنجاح!</h3>
+                <p class="text-muted mb-4">شكراً لجهودكم البيئية. تم تسجيل بيانات الحاويات وإرسالها مباشرة إلى لوحة تحكم الإدارة لمتابعتها وجمعها.</p>
+                <a href="/" class="btn btn-primary-custom w-100">
+                    <i class="fa-solid fa-arrow-right me-2"></i> إرسال طلب أو مدرسة أخرى ♻️
+                </a>
             </div>
         </div>
     </body>
@@ -263,22 +331,23 @@ def login():
                 <div class="col-md-5 col-lg-4">
                     <div class="card card-custom p-4 p-md-5">
                         <div class="text-center mb-4">
-                            <h3 class="fw-bold text-dark">🔐 لوحة التحكم</h3>
-                            <p class="text-muted small">تسجيل دخول المسؤولين</p>
+                            <div class="text-success mb-2" style="font-size: 40px;"><i class="fa-solid fa-shield-halved"></i></div>
+                            <h3 class="fw-bold text-dark">لوحة التحكم</h3>
+                            <p class="text-muted small">تسجيل دخول مسؤولي شركة مزايا</p>
                         </div>
                         {{% if error %}}
                             <div class="alert alert-danger text-center py-2 mb-3" style="font-size: 14px; border-radius: 10px;">{{{{ error }}}}</div>
                         {{% endif %}}
                         <form method="POST">
                             <div class="mb-3">
-                                <label class="form-label fw-bold">اسم المستخدم</label>
-                                <input type="text" class="form-control" name="username" required>
+                                <label class="form-label">اسم المستخدم</label>
+                                <input type="text" class="form-control single-input" name="username" required>
                             </div>
                             <div class="mb-4">
-                                <label class="form-label fw-bold">كلمة المرور</label>
-                                <input type="password" class="form-control" name="password" required>
+                                <label class="form-label">كلمة المرور</label>
+                                <input type="password" class="form-control single-input" name="password" required>
                             </div>
-                            <button type="submit" class="btn btn-primary-custom w-100">دخول للنظام</button>
+                            <button type="submit" class="btn btn-primary-custom w-100">تسجيل الدخول</button>
                         </form>
                     </div>
                 </div>
@@ -297,16 +366,16 @@ def admin_dashboard():
     
     rows_html = ""
     for r in requests_list:
-        location_link = f"<a href='{r.school_location}' target='_blank' class='btn btn-sm btn-outline-success fw-bold'>عرض على الخريطة 🗺️</a>" if r.school_location.startswith('http') else r.school_location
+        location_link = f"<a href='{r.school_location}' target='_blank' class='btn btn-sm btn-outline-success fw-bold'><i class='fa-solid fa-map me-1'></i> الخريطة</a>" if r.school_location.startswith('http') else r.school_location
         
         if r.status == "تم الجمع ✅":
             status_badge = "<span class='badge-collected'>تم الجمع ✅</span>"
-            action_btn = f"<a href='/toggle_status/{r.id}' class='btn btn-sm btn-outline-warning'>إرجاع قيد الانتظار ⏳</a>"
+            action_btn = f"<a href='/toggle_status/{r.id}' class='btn btn-sm btn-outline-warning fw-bold'><i class='fa-solid fa-rotate-left me-1'></i> إلغاء التأكيد</a>"
         else:
             status_badge = "<span class='badge-pending'>قيد الانتظار ⏳</span>"
-            action_btn = f"<a href='/toggle_status/{r.id}' class='btn btn-sm btn-success fw-bold'>تأكيد الجمع (تم الجمع) ✔️</a>"
+            action_btn = f"<a href='/toggle_status/{r.id}' class='btn btn-sm btn-success fw-bold'><i class='fa-solid fa-check me-1'></i> تأكيد الجمع ✔️</a>"
 
-        rows_html += f"<tr><td>{r.id}</td><td class='fw-bold'>{r.school_name}</td><td>{location_link}</td><td><span class='badge bg-light text-dark border'>{r.plastic_percentage}</span></td><td>{r.phone}</td><td>{r.notes or '-'}</td><td>{status_badge}</td><td>{action_btn}</td></tr>"
+        rows_html += f"<tr><td>{r.id}</td><td class='fw-bold text-dark'>{r.school_name}</td><td>{location_link}</td><td><span class='badge bg-light text-success border fw-bold px-2 py-1'>{r.plastic_percentage}</span></td><td>{r.phone}</td><td>{r.notes or '-'}</td><td>{status_badge}</td><td>{action_btn}</td></tr>"
 
     if not rows_html:
         rows_html = "<tr><td colspan='8' class='text-center text-muted py-4'>لا توجد طلبات مسجلة حتى الآن</td></tr>"
@@ -319,16 +388,18 @@ def admin_dashboard():
         <title>لوحة التحكم - شركة مزايا</title>
         {COMMON_STYLE}
     </head>
-    <body style="display: block; background: #f8f9fa; padding: 0;">
+    <body style="display: block; background: #f4f7f6; padding: 0;">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 py-3 shadow-sm">
             <div class="container-fluid">
-                <a class="navbar-brand fw-bold" href="#">♻️ لوحة تحكم شركة مزايا (إدارة الحاويات)</a>
-                <a href="/logout" class="btn btn-outline-light btn-sm">تسجيل الخروج</a>
+                <a class="navbar-brand fw-bold" href="#"><i class="fa-solid fa-recycle text-success me-2"></i> لوحة تحكم شركة مزايا (إدارة الحاويات)</a>
+                <a href="/logout" class="btn btn-outline-light btn-sm fw-bold"><i class="fa-solid fa-right-from-bracket me-1"></i> تسجيل الخروج</a>
             </div>
         </nav>
-        <div class="container my-5" style="max-width: 1300px;">
+        <div class="container my-5" style="max-width: 1350px;">
             <div class="card card-custom p-4 shadow-sm" style="background: #ffffff;">
-                <h4 class="mb-4 fw-bold text-secondary">إدارة طلبات وحاويات المدارس الواردة</h4>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold text-secondary mb-0"><i class="fa-solid fa-list-check text-success me-2"></i> إدارة طلبات وحاويات المدارس الواردة</h4>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light">
