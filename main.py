@@ -19,7 +19,6 @@ class CompanyRequest(db.Model):
 
 with app.app_context():
     db.create_all()
-    # إضافة طلب تجريبي افتراضي إذا كانت القاعدة فارغة لضمان ظهور بيانات في لوحة التحكم
     if CompanyRequest.query.count() == 0:
         sample = CompanyRequest(
             school_name="مدرسة سهيل بن عمرو (تجريبي)",
@@ -312,4 +311,4 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
