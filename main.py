@@ -5,7 +5,9 @@ import os
 app = Flask(__name__)
 app.secret_key = 'mazaya_secret_key_2026'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mazaya.db'
+# ضبط مسار قاعدة البيانات ليكون في مجلد آمن
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'mazaya.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -19,6 +21,7 @@ class CompanyRequest(db.Model):
 
 with app.app_context():
     db.create_all()
+    # إضافة طلب تجريبي افتراضي إذا كانت القاعدة فارغة
     if CompanyRequest.query.count() == 0:
         sample = CompanyRequest(
             school_name="مدرسة سهيل بن عمرو (تجريبي)",
