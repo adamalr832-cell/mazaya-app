@@ -19,6 +19,17 @@ class CompanyRequest(db.Model):
 
 with app.app_context():
     db.create_all()
+    # إضافة طلب تجريبي افتراضي إذا كانت القاعدة فارغة لضمان ظهور بيانات في لوحة التحكم
+    if CompanyRequest.query.count() == 0:
+        sample = CompanyRequest(
+            school_name="مدرسة سهيل بن عمرو (تجريبي)",
+            school_location="https://maps.google.com/?q=23.5880,58.3829",
+            plastic_percentage="95%",
+            phone="96891234567",
+            notes="هذا طلب تجريبي للتأكد من عمل النظام"
+        )
+        db.session.add(sample)
+        db.session.commit()
 
 COMMON_STYLE = '''
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -135,7 +146,6 @@ def index():
                     const latitude = position.coords.latitude;
                     const longitude = position.coords.longitude;
                     
-                    // وضع إحداثيات خرائط جوجل مباشرة في الحقل
                     locationInput.value = `https://maps.google.com/?q=${{latitude}},${{longitude}}`;
                     status.textContent = 'تم تحديد الموقع بنجاح! ✅';
                     status.className = 'form-text text-success mt-1';
@@ -249,7 +259,6 @@ def admin_dashboard():
     
     rows_html = ""
     for r in requests_list:
-        # جعل الموقع رابطاً قابلاً للنقر لفتح الخريطة مباشرة
         location_link = f"<a href='{r.school_location}' target='_blank' class='btn btn-sm btn-outline-primary'>عرض على الخريطة 🗺️</a>" if r.school_location.startswith('http') else r.school_location
         rows_html += f"<tr><td>{r.id}</td><td class='fw-bold'>{r.school_name}</td><td>{location_link}</td><td><span class='badge bg-success'>{r.plastic_percentage}</span></td><td>{r.phone}</td><td>{r.notes or '-'}</td></tr>"
 
@@ -303,4 +312,4 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port5000, debug=True)
