@@ -5,7 +5,6 @@ import os
 app = Flask(__name__)
 app.secret_key = 'mazaya_secret_key_2026'
 
-# ضبط مسار قاعدة البيانات ليكون في مجلد آمن
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'mazaya.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -18,17 +17,18 @@ class CompanyRequest(db.Model):
     plastic_percentage = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(50), nullable=False)
     notes = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(50), default='قيد الانتظار ⏳') # حقل جديد لحالة الجمع
 
 with app.app_context():
     db.create_all()
-    # إضافة طلب تجريبي افتراضي إذا كانت القاعدة فارغة
     if CompanyRequest.query.count() == 0:
         sample = CompanyRequest(
             school_name="مدرسة سهيل بن عمرو (تجريبي)",
             school_location="https://maps.google.com/?q=23.5880,58.3829",
             plastic_percentage="95%",
             phone="96891234567",
-            notes="هذا طلب تجريبي للتأكد من عمل النظام"
+            notes="هذا طلب تجريبي للتأكد من عمل النظام",
+            status="قيد الانتظار ⏳"
         )
         db.session.add(sample)
         db.session.commit()
@@ -39,40 +39,70 @@ COMMON_STYLE = '''
 <style>
     body {
         font-family: 'Cairo', sans-serif;
-        background: linear-gradient(135deg, #f0f7f4 0%, #d8e8e1 100%);
+        background: linear-gradient(rgba(15, 32, 39, 0.75), rgba(44, 83, 100, 0.75)), 
+                    url('https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+        background-size: cover;
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: 40px 0;
     }
     .card-custom {
         border: none;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(10px);
         overflow: hidden;
     }
+    .hero-img {
+        width: 100%;
+        height: 140px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
     .btn-primary-custom {
-        background-color: #2e7d32;
+        background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
         border: none;
-        border-radius: 8px;
-        padding: 10px;
-        font-weight: 600;
+        border-radius: 10px;
+        padding: 12px;
+        font-weight: 700;
         color: #fff;
         transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(46, 125, 50, 0.4);
     }
     .btn-primary-custom:hover {
-        background-color: #1b5e20;
+        background: linear-gradient(135deg, #1b5e20 0%, #0d3811 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(46, 125, 50, 0.6);
         color: #fff;
     }
     .form-control, .form-select {
-        border-radius: 8px;
-        padding: 10px 15px;
+        border-radius: 10px;
+        padding: 12px 15px;
         border: 1px solid #ced4da;
+        background-color: rgba(255, 255, 255, 0.9);
     }
     .form-control:focus {
         border-color: #2e7d32;
-        box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
+        box-shadow: 0 0 0 0.25rem rgba(46, 125, 50, 0.25);
+        background-color: #fff;
+    }
+    .badge-pending {
+        background-color: #fff3cd;
+        color: #856404;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 20px;
+    }
+    .badge-collected {
+        background-color: #d4edda;
+        color: #155724;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 20px;
     }
 </style>
 '''
@@ -84,46 +114,50 @@ def index():
     <html lang="ar" dir="rtl">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>شركة مزايا للتدوير</title>
         {COMMON_STYLE}
     </head>
     <body>
-        <div class="container py-5">
+        <div class="container">
             <div class="row justify-content-center">
-                <div class="col-md-6 col-lg-5">
+                <div class="col-md-7 col-lg-6">
                     <div class="card card-custom p-4 p-md-5">
+                        <!-- صورة تعبيرية فخمة لإعادة التدوير -->
+                        <img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=800&auto=format&fit=crop" class="hero-img" alt="إعادة تدوير الورق والبيئة">
+                        
                         <div class="text-center mb-4">
-                            <h2 class="fw-bold text-success">♻️ شركة مزايا للتدوير</h2>
-                            <p class="text-muted small">نظام استقبال بيانات وإحصاءات إعادة تدوير الورق للمدارس</p>
+                            <h2 class="fw-bold text-success">شركة مزايا للتدوير</h2>
+                            <p class="text-muted small">منصة استقبال بيانات وإحصاءات إعادة تدوير الورق للمدارس</p>
                         </div>
                         <form action="/submit" method="POST">
                             <div class="mb-3">
-                                <label class="form-label fw-600">اسم المدرسة</label>
+                                <label class="form-label fw-bold">اسم المدرسة</label>
                                 <input type="text" class="form-control" name="school_name" placeholder="أدخل اسم المدرسة هنا" required>
                             </div>
                             
                             <div class="mb-3">
-                                <label class="form-label fw-600">موقع المدرسة (تحديد تلقائي)</label>
+                                <label class="form-label fw-bold">موقع المدرسة (تحديد تلقائي)</label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" id="school_location" name="school_location" placeholder="اضغط على الزر لتحديد موقعك..." required readonly>
-                                    <button type="button" class="btn btn-outline-success" onclick="getLocation()">📍 تحديد الموقع</button>
+                                    <input type="text" class="form-control" id="school_location" name="school_location" placeholder="اضغط على زر التحديد..." required readonly>
+                                    <button type="button" class="btn btn-outline-success px-3 fw-bold" onclick="getLocation()">📍 حدد موقعي</button>
                                 </div>
-                                <div id="location-status" class="form-text text-success mt-1" style="font-size: 12px;"></div>
+                                <div id="location-status" class="form-text text-success mt-1 fw-bold" style="font-size: 13px;"></div>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label fw-600">نسبة استلام العبوية (%100-0)</label>
+                                <label class="form-label fw-bold">نسبة استلام العبوية أو تدوير الورق (0 - 100%)</label>
                                 <input type="text" class="form-control" name="plastic_percentage" placeholder="مثال: 95%" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-600">رقم هاتف المسؤول</label>
+                                <label class="form-label fw-bold">رقم هاتف المسؤول</label>
                                 <input type="text" class="form-control" name="phone" placeholder="أدخل رقم الهاتف" required>
                             </div>
                             <div class="mb-4">
-                                <label class="form-label fw-600">ملاحظات إضافية (اختياري)</label>
-                                <textarea class="form-control" name="notes" rows="3" placeholder="أي تفاصيل أو ملاحظات إضافية..."></textarea>
+                                <label class="form-label fw-bold">ملاحظات إضافية (اختياري)</label>
+                                <textarea class="form-control" name="notes" rows="3" placeholder="أي تفاصيل حول الحاويات أو الملاحظات..."></textarea>
                             </div>
-                            <button type="submit" class="btn btn-primary-custom w-100">إرسال الحالة</button>
+                            <button type="submit" class="btn btn-primary-custom w-100">إرسال الطلب للإدارة 🚀</button>
                         </form>
                     </div>
                 </div>
@@ -141,7 +175,7 @@ def index():
                     return;
                 }}
 
-                status.textContent = 'جاري تحديد الموقع...';
+                status.textContent = 'جاري تحديد الموقع بدقة...';
                 status.className = 'form-text text-warning mt-1';
 
                 navigator.geolocation.getCurrentPosition((position) => {{
@@ -174,7 +208,8 @@ def submit():
         school_location=school_location,
         plastic_percentage=plastic_percentage,
         phone=phone,
-        notes=notes
+        notes=notes,
+        status="قيد الانتظار ⏳"
     )
     db.session.add(new_request)
     db.session.commit()
@@ -190,10 +225,10 @@ def submit():
     <body>
         <div class="container text-center">
             <div class="card card-custom p-5 mx-auto" style="max-width: 500px;">
-                <div class="mb-3 text-success" style="font-size: 50px;">✅</div>
-                <h3 class="fw-bold text-dark mb-3">تم إرسال طلب شركة مزايا بنجاح</h3>
-                <p class="text-muted mb-4">شكراً لك، تم تسجيل بيانات المدرسة مع الموقع الجغرافي بنجاح في النظام.</p>
-                <a href="/" class="btn btn-primary-custom">إرسال طلب جديد</a>
+                <div class="mb-3 text-success" style="font-size: 60px;">🎉</div>
+                <h3 class="fw-bold text-dark mb-3">تم إرسال طلبك بنجاح!</h3>
+                <p class="text-muted mb-4">شكراً لك، تم حفظ بيانات المدرسة والحاويات وموقعها وإرسالها مباشرة للإدارة.</p>
+                <a href="/" class="btn btn-primary-custom w-100">إرسال طلب جديد ♻️</a>
             </div>
         </div>
     </body>
@@ -222,7 +257,7 @@ def login():
         {COMMON_STYLE}
     </head>
     <body>
-        <div class="container py-5">
+        <div class="container">
             <div class="row justify-content-center">
                 <div class="col-md-5 col-lg-4">
                     <div class="card card-custom p-4 p-md-5">
@@ -231,15 +266,15 @@ def login():
                             <p class="text-muted small">تسجيل دخول المسؤولين</p>
                         </div>
                         {{% if error %}}
-                            <div class="alert alert-danger text-small text-center py-2 mb-3" style="font-size: 14px; border-radius: 8px;">{{{{ error }}}}</div>
+                            <div class="alert alert-danger text-center py-2 mb-3" style="font-size: 14px; border-radius: 10px;">{{{{ error }}}}</div>
                         {{% endif %}}
                         <form method="POST">
                             <div class="mb-3">
-                                <label class="form-label fw-600">اسم المستخدم</label>
+                                <label class="form-label fw-bold">اسم المستخدم</label>
                                 <input type="text" class="form-control" name="username" required>
                             </div>
                             <div class="mb-4">
-                                <label class="form-label fw-600">كلمة المرور</label>
+                                <label class="form-label fw-bold">كلمة المرور</label>
                                 <input type="password" class="form-control" name="password" required>
                             </div>
                             <button type="submit" class="btn btn-primary-custom w-100">دخول للنظام</button>
@@ -261,11 +296,20 @@ def admin_dashboard():
     
     rows_html = ""
     for r in requests_list:
-        location_link = f"<a href='{r.school_location}' target='_blank' class='btn btn-sm btn-outline-primary'>عرض على الخريطة 🗺️</a>" if r.school_location.startswith('http') else r.school_location
-        rows_html += f"<tr><td>{r.id}</td><td class='fw-bold'>{r.school_name}</td><td>{location_link}</td><td><span class='badge bg-success'>{r.plastic_percentage}</span></td><td>{r.phone}</td><td>{r.notes or '-'}</td></tr>"
+        location_link = f"<a href='{r.school_location}' target='_blank' class='btn btn-sm btn-outline-success fw-bold'>عرض على الخريطة 🗺️</a>" if r.school_location.startswith('http') else r.school_location
+        
+        # تصميم الحالة مع زر لتحديثها إلى "تم الجمع ✅"
+        if r.status == "تم الجمع ✅":
+            status_badge = "<span class='badge-collected'>تم الجمع ✅</span>"
+            action_btn = f"<a href='/toggle_status/{r.id}' class='btn btn-sm btn-outline-warning'>إرجاع قيد الانتظار ⏳</a>"
+        else:
+            status_badge = "<span class='badge-pending'>قيد الانتظار ⏳</span>"
+            action_btn = f"<a href='/toggle_status/{r.id}' class='btn btn-sm btn-success fw-bold'>تأكيد الجمع (تم الجمع) ✔️</a>"
+
+        rows_html += f"<tr><td>{r.id}</td><td class='fw-bold'>{r.school_name}</td><td>{location_link}</td><td><span class='badge bg-light text-dark border'>{r.plastic_percentage}</span></td><td>{r.phone}</td><td>{r.notes or '-'}</td><td>{status_badge}</td><td>{action_btn}</td></tr>"
 
     if not rows_html:
-        rows_html = "<tr><td colspan='6' class='text-center text-muted py-4'>لا توجد طلبات مسجلة حتى الآن</td></tr>"
+        rows_html = "<tr><td colspan='8' class='text-center text-muted py-4'>لا توجد طلبات مسجلة حتى الآن</td></tr>"
 
     return render_template_string(f'''
     <!DOCTYPE html>
@@ -275,16 +319,16 @@ def admin_dashboard():
         <title>لوحة التحكم - شركة مزايا</title>
         {COMMON_STYLE}
     </head>
-    <body style="display: block; background: #f8f9fa;">
+    <body style="display: block; background: #f8f9fa; padding: 0;">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 py-3 shadow-sm">
             <div class="container-fluid">
-                <a class="navbar-brand fw-bold" href="#">♻️ لوحة تحكم شركة مزايا</a>
+                <a class="navbar-brand fw-bold" href="#">♻️ لوحة تحكم شركة مزايا (إدارة الحاويات)</a>
                 <a href="/logout" class="btn btn-outline-light btn-sm">تسجيل الخروج</a>
             </div>
         </nav>
-        <div class="container my-5">
-            <div class="card card-custom p-4">
-                <h4 class="mb-4 fw-bold text-secondary">طلبات المدارس الواردة (إعادة تدوير الورق)</h4>
+        <div class="container my-5" style="max-width: 1300px;">
+            <div class="card card-custom p-4 shadow-sm" style="background: #ffffff;">
+                <h4 class="mb-4 fw-bold text-secondary">إدارة طلبات وحاويات المدارس الواردة</h4>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light">
@@ -292,9 +336,11 @@ def admin_dashboard():
                                 <th>#</th>
                                 <th>اسم المدرسة</th>
                                 <th>موقع المدرسة</th>
-                                <th>نسبة الورق</th>
-                                <th>رقم الهاتف</th>
+                                <th>النسبة</th>
+                                <th>الهاتف</th>
                                 <th>ملاحظات</th>
+                                <th>الحالة</th>
+                                <th>إجراءات الإدارة</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -307,6 +353,20 @@ def admin_dashboard():
     </body>
     </html>
     ''')
+
+@app.route('/toggle_status/<int:req_id>')
+def toggle_status(req_id):
+    if not session.get('admin_logged'):
+        return redirect(url_for('login'))
+    
+    req_item = CompanyRequest.query.get_or_404(req_id)
+    if req_item.status == "تم الجمع ✅":
+        req_item.status = "قيد الانتظار ⏳"
+    else:
+        req_item.status = "تم الجمع ✅"
+    
+    db.session.commit()
+    return redirect(url_for('admin_dashboard'))
 
 @app.route('/logout')
 def logout():
