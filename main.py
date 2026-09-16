@@ -12,7 +12,7 @@ db = SQLAlchemy(app)
 class CompanyRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     school_name = db.Column(db.String(150), nullable=False)
-    school_location = db.Column(db.String(150), nullable=False)
+    school_location = db.Column(db.String(250), nullable=False)
     plastic_percentage = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(50), nullable=False)
     notes = db.Column(db.Text, nullable=True)
@@ -88,10 +88,16 @@ def index():
                                 <label class="form-label fw-600">اسم المدرسة</label>
                                 <input type="text" class="form-control" name="school_name" placeholder="أدخل اسم المدرسة هنا" required>
                             </div>
+                            
                             <div class="mb-3">
-                                <label class="form-label fw-600">موقع المدرسة (الولاية / المنطقة)</label>
-                                <input type="text" class="form-control" name="school_location" placeholder="مثال: السيب، مسقط" required>
+                                <label class="form-label fw-600">موقع المدرسة (تحديد تلقائي)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="school_location" name="school_location" placeholder="اضغط على الزر لتحديد موقعك..." required readonly>
+                                    <button type="button" class="btn btn-outline-success" onclick="getLocation()">📍 تحديد الموقع</button>
+                                </div>
+                                <div id="location-status" class="form-text text-success mt-1" style="font-size: 12px;"></div>
                             </div>
+
                             <div class="mb-3">
                                 <label class="form-label fw-600">نسبة استلام العبوية (%100-0)</label>
                                 <input type="text" class="form-control" name="plastic_percentage" placeholder="مثال: 95%" required>
@@ -110,6 +116,35 @@ def index():
                 </div>
             </div>
         </div>
+
+        <script>
+            function getLocation() {{
+                const status = document.getElementById('location-status');
+                const locationInput = document.getElementById('school_location');
+
+                if (!navigator.geolocation) {{
+                    status.textContent = 'متصفحك لا يدعم تحديد الموقع الجغرافي';
+                    status.className = 'form-text text-danger mt-1';
+                    return;
+                }}
+
+                status.textContent = 'جاري تحديد الموقع...';
+                status.className = 'form-text text-warning mt-1';
+
+                navigator.geolocation.getCurrentPosition((position) => {{
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    
+                    // وضع إحداثيات خرائط جوجل مباشرة في الحقل
+                    locationInput.value = `https://maps.google.com/?q=${{latitude}},${{longitude}}`;
+                    status.textContent = 'تم تحديد الموقع بنجاح! ✅';
+                    status.className = 'form-text text-success mt-1';
+                }}, () => {{
+                    status.textContent = 'فشل تحديد الموقع. يرجى السماح للمتصفح بالوصول للموقع.';
+                    status.className = 'form-text text-danger mt-1';
+                }});
+            }}
+        </script>
     </body>
     </html>
     ''')
@@ -145,7 +180,7 @@ def submit():
             <div class="card card-custom p-5 mx-auto" style="max-width: 500px;">
                 <div class="mb-3 text-success" style="font-size: 50px;">✅</div>
                 <h3 class="fw-bold text-dark mb-3">تم إرسال طلب شركة مزايا بنجاح</h3>
-                <p class="text-muted mb-4">شكراً لك، تم تسجيل بيانات المدرسة بنجاح في النظام.</p>
+                <p class="text-muted mb-4">شكراً لك، تم تسجيل بيانات المدرسة مع الموقع الجغرافي بنجاح في النظام.</p>
                 <a href="/" class="btn btn-primary-custom">إرسال طلب جديد</a>
             </div>
         </div>
@@ -214,7 +249,9 @@ def admin_dashboard():
     
     rows_html = ""
     for r in requests_list:
-        rows_html += f"<tr><td>{r.id}</td><td class='fw-bold'>{r.school_name}</td><td>{r.school_location}</td><td><span class='badge bg-success'>{r.plastic_percentage}</span></td><td>{r.phone}</td><td>{r.notes or '-'}</td></tr>"
+        # جعل الموقع رابطاً قابلاً للنقر لفتح الخريطة مباشرة
+        location_link = f"<a href='{r.school_location}' target='_blank' class='btn btn-sm btn-outline-primary'>عرض على الخريطة 🗺️</a>" if r.school_location.startswith('http') else r.school_location
+        rows_html += f"<tr><td>{r.id}</td><td class='fw-bold'>{r.school_name}</td><td>{location_link}</td><td><span class='badge bg-success'>{r.plastic_percentage}</span></td><td>{r.phone}</td><td>{r.notes or '-'}</td></tr>"
 
     if not rows_html:
         rows_html = "<tr><td colspan='6' class='text-center text-muted py-4'>لا توجد طلبات مسجلة حتى الآن</td></tr>"
@@ -243,7 +280,7 @@ def admin_dashboard():
                             <tr>
                                 <th>#</th>
                                 <th>اسم المدرسة</th>
-                                <th>الموقع</th>
+                                <th>موقع المدرسة</th>
                                 <th>نسبة الورق</th>
                                 <th>رقم الهاتف</th>
                                 <th>ملاحظات</th>
