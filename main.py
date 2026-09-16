@@ -17,7 +17,7 @@ class CompanyRequest(db.Model):
     plastic_percentage = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(50), nullable=False)
     notes = db.Column(db.Text, nullable=True)
-    status = db.Column(db.String(50), default='قيد الانتظار ⏳') # حقل جديد لحالة الجمع
+    status = db.Column(db.String(50), default='قيد الانتظار ⏳')
 
 with app.app_context():
     db.create_all()
@@ -58,10 +58,11 @@ COMMON_STYLE = '''
     }
     .hero-img {
         width: 100%;
-        height: 140px;
+        height: 160px;
         object-fit: cover;
         border-radius: 12px;
         margin-bottom: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
     .btn-primary-custom {
         background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
@@ -123,8 +124,8 @@ def index():
             <div class="row justify-content-center">
                 <div class="col-md-7 col-lg-6">
                     <div class="card card-custom p-4 p-md-5">
-                        <!-- صورة تعبيرية فخمة لإعادة التدوير -->
-                        <img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=800&auto=format&fit=crop" class="hero-img" alt="إعادة تدوير الورق والبيئة">
+                        <!-- صورة إعادة تدوير خلفية وتوضيحية فخمة -->
+                        <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=800&auto=format&fit=crop" class="hero-img" alt="إعادة التدوير والبيئة">
                         
                         <div class="text-center mb-4">
                             <h2 class="fw-bold text-success">شركة مزايا للتدوير</h2>
@@ -298,7 +299,6 @@ def admin_dashboard():
     for r in requests_list:
         location_link = f"<a href='{r.school_location}' target='_blank' class='btn btn-sm btn-outline-success fw-bold'>عرض على الخريطة 🗺️</a>" if r.school_location.startswith('http') else r.school_location
         
-        # تصميم الحالة مع زر لتحديثها إلى "تم الجمع ✅"
         if r.status == "تم الجمع ✅":
             status_badge = "<span class='badge-collected'>تم الجمع ✅</span>"
             action_btn = f"<a href='/toggle_status/{r.id}' class='btn btn-sm btn-outline-warning'>إرجاع قيد الانتظار ⏳</a>"
